@@ -5,7 +5,8 @@
 # Copyright 2018-2020 BasicSR Authors
 # ------------------------------------------------------------------------
 from .losses import (L1Loss, MSELoss, PSNRLoss)
+from .composite_loss import EvalAlignedLoss
 
 __all__ = [
-    'L1Loss', 'MSELoss', 'PSNRLoss',
+    'L1Loss', 'MSELoss', 'PSNRLoss', 'EvalAlignedLoss',
 ]

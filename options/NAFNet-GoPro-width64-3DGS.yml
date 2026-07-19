@@ -1,0 +1,96 @@
+name: NAFNet-GoPro-width64-3DGS-finetune
+model_type: NAFNetJPEGModel
+scale: 1
+num_gpu: 1
+manual_seed: 42
+
+datasets:
+  train:
+    name: 3dgs-train
+    type: Paired16BitDataset
+    dataroot_gt: ./dataset/train/gt_jpeg
+    dataroot_lq: ./dataset/train/render
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+    gt_size: 256
+    use_flip: true
+    use_rot: true
+    use_shuffle: true
+    num_worker_per_gpu: 4
+    batch_size_per_gpu: 4
+    dataset_enlarge_ratio: 1
+    prefetch_mode: ~
+  val:
+    name: 3dgs-val
+    type: Paired16BitDataset
+    dataroot_gt: ./dataset/val/gt_jpeg
+    dataroot_lq: ./dataset/val/render
+    io_backend:
+      type: disk
+
+network_g:
+  type: NAFNetLocal
+  width: 64
+  enc_blk_nums: [1, 1, 1, 28]
+  middle_blk_num: 1
+  dec_blk_nums: [1, 1, 1, 1]
+
+diffjpeg:
+  quality: 95
+
+path:
+  pretrain_network_g: experiments/pretrained_models/NAFNet-GoPro-width64.pth
+  param_key: params
+  strict_load_g: true
+  resume_state: ~
+
+train:
+  use_amp: true
+  use_grad_checkpoint: false
+  grad_clip_norm: 0.01
+
+  optim_g:
+    type: AdamW
+    lr: !!float 1e-4
+    weight_decay: !!float 1e-3
+    betas: [0.9, 0.9]
+  scheduler:
+    type: TrueCosineAnnealingLR
+    T_max: 20000
+    eta_min: !!float 1e-7
+  total_iter: 20000
+  warmup_iter: -1
+
+  pixel_opt:
+    type: EvalAlignedLoss
+    w_lpips: 0.4
+    w_ssim: 0.3
+    w_psnr: 0.3
+    psnr_norm: 40.0
+    loss_weight: 1.0
+
+val:
+  val_freq: !!float 1e3
+  save_img: true
+  metrics:
+    psnr:
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 0
+      test_y_channel: false
+
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 1e3
+  use_tb_logger: true
+  wandb:
+    project: ~
+    resume_id: ~
+
+dist_params:
+  backend: nccl
+  port: 29500
