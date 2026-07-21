@@ -21,6 +21,7 @@ class EvalAlignedLoss(nn.Module):
         return psnr.mean()
 
     def forward(self, pred, target):
+        pred = torch.clamp(pred, 0.0, 1.0)
         lpips_val = self.lpips_fn(pred * 2 - 1, target * 2 - 1).mean()
         ssim_val = ssim_fn(pred, target, data_range=1.0, size_average=True)
         psnr_raw = self._psnr_raw(pred, target)

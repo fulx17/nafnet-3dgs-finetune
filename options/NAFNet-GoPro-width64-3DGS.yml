@@ -46,7 +46,7 @@ path:
   resume_state: ~
 
 train:
-  use_amp: false
+  use_amp: true
   use_grad_checkpoint: false
 
   optim_g:
