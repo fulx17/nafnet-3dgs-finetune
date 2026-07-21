@@ -8,8 +8,8 @@ datasets:
   train:
     name: 3dgs-train
     type: Paired16BitDataset
-    dataroot_gt: ./dataset/train/gt_jpeg
-    dataroot_lq: ./dataset/train/render
+    dataroot_gt: /kaggle/input/datasets/xuanph/nafnet-finetune-data/dataset/train/gt_jpeg
+    dataroot_lq: /kaggle/input/datasets/xuanph/nafnet-finetune-data/dataset/train/render
     filename_tmpl: '{}'
     io_backend:
       type: disk
@@ -18,14 +18,14 @@ datasets:
     use_rot: true
     use_shuffle: true
     num_worker_per_gpu: 4
-    batch_size_per_gpu: 4
+    batch_size_per_gpu: 8
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
   val:
     name: 3dgs-val
     type: Paired16BitDataset
-    dataroot_gt: ./dataset/val/gt_jpeg
-    dataroot_lq: ./dataset/val/render
+    dataroot_gt: /kaggle/input/datasets/xuanph/nafnet-finetune-data/dataset/val/gt_jpeg
+    dataroot_lq: /kaggle/input/datasets/xuanph/nafnet-finetune-data/dataset/val/render
     io_backend:
       type: disk
 
