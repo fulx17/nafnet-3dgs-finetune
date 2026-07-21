@@ -48,10 +48,11 @@ path:
 train:
   use_amp: true
   use_grad_checkpoint: false
+  grad_clip_norm: 1.0
 
   optim_g:
     type: AdamW
-    lr: !!float 1e-4
+    lr: !!float 1e-5
     weight_decay: !!float 1e-3
     betas: [0.9, 0.9]
   scheduler:

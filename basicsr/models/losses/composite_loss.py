@@ -14,6 +14,9 @@ class EvalAlignedLoss(nn.Module):
         self.psnr_norm = psnr_norm
         self.loss_weight = loss_weight
         self.lpips_fn = lpips.LPIPS(net='alex')
+        self.lpips_fn.eval()
+        for p in self.lpips_fn.parameters():
+            p.requires_grad = False
 
     def _psnr_raw(self, pred, target, eps=1e-8):
         mse = torch.mean((pred - target) ** 2, dim=[1, 2, 3])
