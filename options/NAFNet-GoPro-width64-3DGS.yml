@@ -46,9 +46,8 @@ path:
   resume_state: ~
 
 train:
-  use_amp: true
+  use_amp: false
   use_grad_checkpoint: false
-  grad_clip_norm: 0.01
 
   optim_g:
     type: AdamW
