@@ -52,24 +52,3 @@ class NAFNetJPEGModel(ImageRestorationModel):
         self.scaler.step(self.optimizer_g)
         self.scaler.update()
         self.log_dict = self.reduce_loss_dict(loss_dict)
-    def test(self):
-        self.net_g.eval()
-        with torch.no_grad():
-            n = len(self.lq)
-            outs = []
-            m = self.opt['val'].get('max_minibatch', n)
-            i = 0
-            while i < n:
-                j = i + m
-                if j >= n:
-                    j = n
-                pred = self.net_g(self.lq[i:j])
-                if isinstance(pred, list):
-                    pred = pred[-1]
-                pred = torch.clamp(pred, 0.0, 1.0)
-                pred = self.diffjpeg(pred.float())
-                outs.append(pred.detach().cpu())
-                i = j
-
-            self.output = torch.cat(outs, dim=0)
-        self.net_g.train()
