@@ -18,7 +18,7 @@ datasets:
     use_rot: true
     use_shuffle: true
     num_worker_per_gpu: 4
-    batch_size_per_gpu: 8
+    batch_size_per_gpu: 4
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
   val:
@@ -46,9 +46,8 @@ path:
   resume_state: ~
 
 train:
-  use_amp: true
-  use_grad_checkpoint: false
-  grad_clip_norm: 1.0
+  use_amp: false
+  use_grad_checkpoint: true
 
   optim_g:
     type: AdamW

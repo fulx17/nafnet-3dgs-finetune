@@ -19,45 +19,30 @@ class NAFNetJPEGModel(ImageRestorationModel):
         self.use_amp = opt['train'].get('use_amp', True)
         self.use_grad_checkpoint = opt['train'].get('use_grad_checkpoint', False)
         self.scaler = GradScaler(enabled=self.use_amp)
-        # FIX 1: default 0.0 thay vì 0.01 -- trước đây dù xoá khỏi config vẫn bị áp 0.01 ngầm
         self.grad_clip_norm = opt['train'].get('grad_clip_norm', 0.0)
 
     def optimize_parameters(self, current_iter, tb_logger):
         self.optimizer_g.zero_grad()
 
-        # FIX 2: NAFNet forward chạy fp32 (autocast tắt) để tránh NaN do
-        # LayerNorm/AvgPool2d trong NAFNetLocal không ổn định dưới fp16
-        with autocast(enabled=False):
+        with autocast(enabled=self.use_amp):
             if self.use_grad_checkpoint:
-                preds = torch.utils.checkpoint.checkpoint(self.net_g, self.lq.float(), use_reentrant=False)
+                preds = torch.utils.checkpoint.checkpoint(self.net_g, self.lq, use_reentrant=False)
             else:
-                preds = self.net_g(self.lq.float())
+                preds = self.net_g(self.lq)
             if not isinstance(preds, list):
                 preds = [preds]
             self.output = preds[-1]
-
-            # Debug guard: bắt NaN ngay tại nguồn nếu vẫn còn xảy ra
-            if torch.isnan(self.output).any():
-                print("=== NAFNet output NaN ===")
-                print(f"lq range: [{self.lq.min().item()}, {self.lq.max().item()}]")
-                print(f"lq has nan: {torch.isnan(self.lq).any().item()}")
-                raise RuntimeError("NAFNet forward produced NaN")
-
             enhanced = torch.clamp(self.output, 0.0, 1.0)
 
-        # DiffJPEG + loss cũng chạy fp32 (DCT/quantization dễ overflow ở fp16)
-        with autocast(enabled=False):
-            pred_jpeg = self.diffjpeg(enhanced.float())
+        pred_jpeg = self.diffjpeg(enhanced.float())
 
-            l_total = 0
-            loss_dict = OrderedDict()
-            if self.cri_pix:
-                l_pix = self.cri_pix(pred_jpeg, self.gt.float())
-                l_total += l_pix
-                loss_dict['l_pix'] = l_pix
+        l_total = 0
+        loss_dict = OrderedDict()
+        if self.cri_pix:
+            l_pix = self.cri_pix(pred_jpeg, self.gt)
+            l_total += l_pix
+            loss_dict['l_pix'] = l_pix
 
-        # scaler vẫn dùng để giữ tương thích API, nhưng vì mọi thứ đã fp32
-        # nên hành vi scale/unscale gần như no-op an toàn
         self.scaler.scale(l_total).backward()
 
         if self.grad_clip_norm > 0:
