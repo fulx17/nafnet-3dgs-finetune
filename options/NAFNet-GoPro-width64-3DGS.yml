@@ -47,7 +47,7 @@ path:
 
 train:
   use_amp: false
-  use_grad_checkpoint: true
+  use_grad_checkpoint: false
 
   optim_g:
     type: AdamW
