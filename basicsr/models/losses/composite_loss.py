@@ -25,6 +25,7 @@ class EvalAlignedLoss(nn.Module):
 
     def forward(self, pred, target):
         pred = torch.clamp(pred, 0.0, 1.0)
+
         lpips_val = self.lpips_fn(pred * 2 - 1, target * 2 - 1).mean()
         ssim_val = ssim_fn(pred, target, data_range=1.0, size_average=True)
         psnr_raw = self._psnr_raw(pred, target)
@@ -33,4 +34,17 @@ class EvalAlignedLoss(nn.Module):
         loss = (self.w_lpips * lpips_val
                 + self.w_ssim * (1 - ssim_val)
                 + self.w_psnr * psnr_term)
+
+        if torch.isnan(loss) or torch.isinf(loss):
+            print("=== NaN/Inf DETECTED ===")
+            print(f"lpips_val: {lpips_val.item()}")
+            print(f"ssim_val: {ssim_val.item()}")
+            print(f"psnr_raw: {psnr_raw.item()}")
+            print(f"psnr_term: {psnr_term.item()}")
+            print(f"pred range: [{pred.min().item()}, {pred.max().item()}]")
+            print(f"target range: [{target.min().item()}, {target.max().item()}]")
+            print(f"pred has nan: {torch.isnan(pred).any().item()}")
+            print(f"target has nan: {torch.isnan(target).any().item()}")
+            raise RuntimeError("Stopping to inspect NaN source")
+
         return self.loss_weight * loss
