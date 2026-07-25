@@ -38,10 +38,16 @@ class NAFNetJPEGModel(ImageRestorationModel):
 
         l_total = 0
         loss_dict = OrderedDict()
+
         if self.cri_pix:
             l_pix = self.cri_pix(pred_jpeg, self.gt)
             l_total += l_pix
             loss_dict['l_pix'] = l_pix
+            loss_dict['score'] = torch.tensor(self.cri_pix.last_score, device=l_pix.device)
+            loss_dict['laplacian'] = torch.tensor(self.cri_pix.last_laplacian, device=l_pix.device)
+            loss_dict['lpips_raw'] = torch.tensor(self.cri_pix.last_lpips_raw, device=l_pix.device)
+            loss_dict['ssim_raw'] = torch.tensor(self.cri_pix.last_ssim_raw, device=l_pix.device)
+            loss_dict['psnr_raw'] = torch.tensor(self.cri_pix.last_psnr_raw, device=l_pix.device)
 
         self.scaler.scale(l_total).backward()
 
