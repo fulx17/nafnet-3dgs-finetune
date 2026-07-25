@@ -1,4 +1,3 @@
-# basicsr\models\nafnet_jpeg_model.py
 import torch
 from collections import OrderedDict
 from torch.cuda.amp import autocast, GradScaler
@@ -43,11 +42,11 @@ class NAFNetJPEGModel(ImageRestorationModel):
             l_pix = self.cri_pix(pred_jpeg, self.gt)
             l_total += l_pix
             loss_dict['l_pix'] = l_pix
-            loss_dict['score'] = torch.tensor(self.cri_pix.last_score, device=l_pix.device)
-            loss_dict['laplacian'] = torch.tensor(self.cri_pix.last_laplacian, device=l_pix.device)
-            loss_dict['lpips_raw'] = torch.tensor(self.cri_pix.last_lpips_raw, device=l_pix.device)
-            loss_dict['ssim_raw'] = torch.tensor(self.cri_pix.last_ssim_raw, device=l_pix.device)
-            loss_dict['psnr_raw'] = torch.tensor(self.cri_pix.last_psnr_raw, device=l_pix.device)
+            loss_dict['l_score'] = torch.tensor(self.cri_pix.last_score, device=l_pix.device)
+            loss_dict['l_laplacian'] = torch.tensor(self.cri_pix.last_laplacian, device=l_pix.device)
+            loss_dict['l_lpips_raw'] = torch.tensor(self.cri_pix.last_lpips_raw, device=l_pix.device)
+            loss_dict['l_ssim_raw'] = torch.tensor(self.cri_pix.last_ssim_raw, device=l_pix.device)
+            loss_dict['l_psnr_raw'] = torch.tensor(self.cri_pix.last_psnr_raw, device=l_pix.device)
 
         self.scaler.scale(l_total).backward()
 
